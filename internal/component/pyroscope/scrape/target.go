@@ -349,7 +349,7 @@ func targetsFromGroup(group *targetgroup.Group, cfg Arguments, targetTypes map[s
 			if err != nil {
 				return nil, fmt.Errorf("instance %d in group %s: %s", i, group, err)
 			}
-			if lbls != nil {
+			if lbls != labels.EmptyLabels() {
 				profType := lbls.Get(ProfileName)
 				params := cfg.Params
 				if params == nil {
