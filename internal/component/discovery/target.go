@@ -285,13 +285,29 @@ func (t Target) SpecificLabelsHash(labelNames []string) uint64 {
 func (t Target) HashLabelsWithPredicate(pred func(key string) bool) uint64 {
 	// For hash to be deterministic, we need labels order to be deterministic too. Figure this out first.
 	labelsInOrder := stringSlicesPool.Get().([]string)
+	labelsInOrder = labelsInOrder[:0]            // Reset length but keep capacity
 	defer stringSlicesPool.Put(labelsInOrder[:]) //nolint:staticcheck //TODO(@piotr) take a look at this optimization SA6002
+
+	// Check if we're matching all labels - if so, use Prometheus's hash directly for consistency
+	// This ensures compatibility with both stringlabels and slicelabels modes
+	allLabelsMatch := true
+	totalLabels := 0
 	t.ForEachLabel(func(key string, value string) bool {
+		totalLabels++
 		if pred(key) {
 			labelsInOrder = append(labelsInOrder, key)
+		} else {
+			allLabelsMatch = false
 		}
 		return true
 	})
+
+	// If predicate matches all labels, use Prometheus's hash directly to ensure consistency
+	// across different label modes (stringlabels vs slicelabels)
+	if allLabelsMatch && len(labelsInOrder) == totalLabels {
+		return t.PromLabels().Hash()
+	}
+
 	slices.Sort(labelsInOrder)
 	return t.hashLabelsInOrder(labelsInOrder)
 }
