@@ -77,6 +77,8 @@ Main (unreleased)
 
 - `loki.source.podlogs` now supports `preserve_discovered_labels` parameter to preserve discovered pod metadata labels for use by downstream components. (@QuentinBisson)
 
+- update promtail converter to use `file_match` block for `loki.source.file` instead of going through `local.file_match`. (@kalleep)
+
 ### Bugfixes
 
 - Stop `loki.source.kubernetes` discarding log lines with duplicate timestamps. (@ciaranj)
